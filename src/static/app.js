@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Current Participants:</strong></p>
+          <ul class="participants-list">
+            ${details.participants.length > 0 ? details.participants.map(email => `<li>${email} <span class="delete-participant" data-email="${email}" data-activity="${name}">×</span></li>`).join('') : '<li>No participants yet.</li>'}
+          </ul>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -40,6 +44,30 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  // Handle delete participant
+  activitiesList.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('delete-participant')) {
+      const email = e.target.dataset.email;
+      const activity = e.target.dataset.activity;
+      try {
+        const response = await fetch(
+          `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
+          {
+            method: "DELETE",
+          }
+        );
+        if (response.ok) {
+          fetchActivities(); // Refresh the list
+        } else {
+          alert('Failed to unregister participant.');
+        }
+      } catch (error) {
+        console.error('Error unregistering:', error);
+        alert('Error unregistering participant.');
+      }
+    }
+  });
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
